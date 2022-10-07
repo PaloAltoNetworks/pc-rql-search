@@ -1,5 +1,7 @@
 # Prisma Cloud RQL search to CSV 
 
+This script is supported under a "best effort" policy. Please see SUPPORT.md for details.
+
 Version: *1.1*
 
 ### Summary
