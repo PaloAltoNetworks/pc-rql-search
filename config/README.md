@@ -1,4 +1,4 @@
-# Create a file named: *configs.yml* that follows this format:
+# Create a file named: *configs.yml* in this directory that follows this format:
 
 ```
 prisma_cloud:
@@ -10,6 +10,6 @@ prisma_cloud:
   rql: "config from cloud.resource where api.name = 'aws-ec2-describe-instances' addcolumn instanceId vpcId"
 ```
 
-# Add your tenant credentials and proper API base URL.
+# Add your tenant credentials and update api_base url to your API url
 
 # Update the RQL field with the RQL you want to run
