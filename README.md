@@ -28,7 +28,7 @@ This script will run RQL search and take the results and format them into CSV (b
 
 ### Configuration
 
-1. Navigate to ```config/configs.yml```
+1. Navigate to config/README.md. Use the example format to create a file named ```configs.yml```. Full path should be ```config/configs.yml```
 
 2. Fill out your Prisma Cloud access key/secret, stack info, and RQL to be run. (Ignore filename - this will be used in future.)  
    *To determine stack, look at your browser when access console (appX.prismacloud.io, where X is the stack number.  

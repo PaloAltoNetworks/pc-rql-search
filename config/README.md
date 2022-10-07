@@ -10,6 +10,9 @@ prisma_cloud:
   rql: "config from cloud.resource where api.name = 'aws-ec2-describe-instances' addcolumn instanceId vpcId"
 ```
 
-# Add your tenant credentials and update api_base url to your API url
+# Add your tenant credentials
+The "username" should be an access key ID and the "password" should be a secret key. Always use access keys with expiration dates for scripts such as this one.
 
-# Update the RQL field with the RQL you want to run
+The "api_base" should be your tenants base url but replace "app" with "api". Do not include "https://"
+
+# Update the "rql" field with the RQL expression you want to run
