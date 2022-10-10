@@ -45,6 +45,8 @@ class RQLAsync():
                 #needed to use .replace with literal to backspace single quotes in account names
                 mod_rql = self.insert_cloud_acct(self.config.pc_rql,' cloud.account = ' + '\'' + acct['name'].replace(r"'",r"\'") + '\'' + ' AND',pos)
 
+                print("Running RQL", pcs_accounts.index(acct), "of", len(pcs_accounts))
+
                 self.url = "https://" + self.config.pc_api_base + "/search/config"
                 self.pc_sess.authenticate_client()
                 payload = json.dumps(
