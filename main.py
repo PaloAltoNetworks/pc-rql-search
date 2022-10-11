@@ -1,3 +1,4 @@
+from operator import mod
 import lib
 import json
 import csv
@@ -39,13 +40,16 @@ class RQLAsync():
         else:
             print("RQL doesn't appear to be formatted correctly, please double check and try again.\n")
         
+        print_count = 0
         for acct in pcs_accounts:
             if acct['cloudType'] == query_cloud_type:
                 pos = self.config.pc_rql.find(' api.name')
                 #needed to use .replace with literal to backspace single quotes in account names
                 mod_rql = self.insert_cloud_acct(self.config.pc_rql,' cloud.account = ' + '\'' + acct['name'].replace(r"'",r"\'") + '\'' + ' AND',pos)
 
-                print("Running RQL", pcs_accounts.index(acct), "of", len(pcs_accounts))
+                if print_count % 10 == 0 or pcs_accounts.index(acct) == len(pcs_accounts) -1:
+                    print("Running RQL", pcs_accounts.index(acct) + 1, "of", len(pcs_accounts))
+                print_count += 1
 
                 self.url = "https://" + self.config.pc_api_base + "/search/config"
                 self.pc_sess.authenticate_client()
