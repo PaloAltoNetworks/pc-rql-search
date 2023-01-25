@@ -12,7 +12,7 @@ class RQLAsync():
         self.csv_writer = lib.CsvWriter()
         self.pc_sess = lib.PCSession(self.config.pc_user, self.config.pc_pass, self.config.pc_cust,
                                      self.config.pc_api_base)
-        self.csvheader = ["Resource Name", "Service", "Account", "Region", "Last Modified"]
+        self.csvheader = ["Resource Name", "Service", "Account", "Region Name", "Last Modified", "Deleted" ]
 
     def get_pcs_accounts(self,cloud_type):
         #pull in cloud accounts but only the relavant ones for the specified RQL
@@ -45,7 +45,7 @@ class RQLAsync():
             if acct['cloudType'] == query_cloud_type:
                 pos = self.config.pc_rql.find(' api.name')
                 #needed to use .replace with literal to backspace single quotes in account names
-                mod_rql = self.insert_cloud_acct(self.config.pc_rql,' cloud.account = ' + '\'' + acct['name'].replace(r"'",r"\'") + '\'' + ' AND',pos)
+                mod_rql = self.insert_cloud_acct(self.config.pc_rql,' cloud.account IN ( ' + '\'' + acct['name'].replace(r"'",r"\'") + '\' )' + ' AND',pos)
 
                 if print_count % 10 == 0 or pcs_accounts.index(acct) == len(pcs_accounts) -1:
                     print("Running RQL", pcs_accounts.index(acct) + 1, "of", len(pcs_accounts))
@@ -102,14 +102,14 @@ class RQLAsync():
             #if res['name'] == "Nexus-repo":
                 count += 1
                 newdata = []
-                csvdata = [res['name'], res['service'], res['accountName'], res['regionName'], datetime.datetime.fromtimestamp(res['insertTs']/1000.).strftime('%Y-%m-%d %H:%M:%S')]
+                csvdata = [res['name'], res['service'], res['accountName'], res['regionName'], datetime.datetime.fromtimestamp(res['insertTs']/1000.).strftime('%Y-%m-%d %H:%M:%S'), res['deleted']]
                 if 'dynamicData' in res:
                     for ele in res['dynamicData']:
                         newdata.append(res['dynamicData'][ele])
 
                     csvdata.extend(newdata)
                 else:
-                    csvdata = [res['name'], res['service'], res['accountName'], res['regionName'], datetime.datetime.fromtimestamp(res['insertTs']/1000.).strftime('%Y-%m-%d %H:%M:%S')]
+                    csvdata = [res['name'], res['service'], res['accountName'], res['regionName'], datetime.datetime.fromtimestamp(res['insertTs']/1000.).strftime('%Y-%m-%d %H:%M:%S'), res['deleted']]
                 self.csv_writer.append([csvdata])
 
         print("Number of resources processed: {}".format(count))

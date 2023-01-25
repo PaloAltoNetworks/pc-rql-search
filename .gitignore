@@ -2,3 +2,5 @@
 *.yaml
 *.json
 *.csv
+
+__pycache__
