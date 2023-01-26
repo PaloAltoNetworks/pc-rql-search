@@ -200,8 +200,9 @@ def run_rql_hs():
                 writer.writerows([csv_data])
 
     #Run HS RQL
-    session.config_search_request_function(payload, dump_to_csv)
+    total_rows = session.config_search_request_function(payload, dump_to_csv)
     #Done
+    print(f'Got {total_rows} rows.')
 
 
 def main():
