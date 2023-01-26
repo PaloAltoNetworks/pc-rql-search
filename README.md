@@ -2,7 +2,7 @@
 
 This script is supported under a "best effort" policy. Please see SUPPORT.md for details.
 
-Version: *1.1*
+Version: *2.0*
 
 ### Summary
 This script will run RQL search and take the results and format them into CSV (based on current CSV output on Investigate page)  
@@ -19,13 +19,9 @@ This script will run RQL search and take the results and format them into CSV (b
 
 ```sudo easy_install pip```
 
-4. Requests (Python library)
+4. Install dependencies
 
-```sudo pip install requests```
-
-5. YAML (Python library)
-
-```sudo pip install pyyaml```
+```pip install -r requirements.txt```
 
 
 ### Configuration
