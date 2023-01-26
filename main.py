@@ -135,6 +135,7 @@ def run_rql_hs():
 
     payload = {
         "query": rql,
+        "limit": 200,
         "timeRange": {
             "relativeTimeType": "BACKWARD",
             "type": "relative",
@@ -143,7 +144,8 @@ def run_rql_hs():
                 "unit": "hour"
             }
         },
-        "withResourceJson": True
+        "withResourceJson": True,
+        "heuristicSearch": True
     }
     csv_headers = ["Resource Name", "Service", "Account", "Region Name", "Last Modified", "Deleted" ]
     dy_headers_all = []
