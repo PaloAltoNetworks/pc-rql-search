@@ -135,7 +135,7 @@ def run_rql_hs():
 
     payload = {
         "query": rql,
-        "limit": 200,
+        "limit": 1,
         "timeRange": {
             "relativeTimeType": "BACKWARD",
             "type": "relative",
@@ -149,6 +149,10 @@ def run_rql_hs():
     }
     csv_headers = ["Resource Name", "Service", "Account", "Region Name", "Last Modified", "Deleted" ]
     dy_headers_all = []
+
+    # session.headers.update({"Accept": "text/csv"})
+    # res = session.request('POST', '/search/config', payload)
+    # session.headers.pop('Accept')
 
     #Get headers for CSV and verify RQL
     res = session.request('POST', '/search/config', payload)
@@ -182,6 +186,8 @@ def run_rql_hs():
             for res in res_data['items']:
                 new_data = []
                 csv_data = [res['name'], res['service'], res['accountName'], res['regionName'], datetime.datetime.fromtimestamp(res['insertTs']/1000.).strftime('%Y-%m-%d %H:%M:%S'), res['deleted']]
+                # csv_data = [res['name'], res['service'], res['accountName'], res['regionName'], res['insertTs'], res['deleted']]
+                csv_data = [res['name'], res['service'], res['accountName'], res['regionName'], res['insertTs'], str(res['deleted']).lower()]
                 if 'dynamicData' in res:
                     for header in dy_headers:
                         found = False
