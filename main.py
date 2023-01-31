@@ -4,6 +4,8 @@ import json
 import csv
 import re
 import datetime
+from dateutil import tz
+from datetime import datetime as dt
 
 import logging
 logging.basicConfig()
@@ -150,9 +152,13 @@ def run_rql_hs():
     csv_headers = ["Resource Name", "Service", "Account", "Region Name", "Last Modified", "Deleted" ]
     dy_headers_all = []
 
-    # session.headers.update({"Accept": "text/csv"})
-    # res = session.request('POST', '/search/config', payload)
-    # session.headers.pop('Accept')
+    session.headers.update({"Accept": "text/csv"})
+    res = session.request('POST', '/search/config', payload)
+    session.headers.pop('Accept')
+
+    tz_list = res.text.split('\n')[2].split(',"')[1].split('",')[0].split(' ')[4:]#TODO if needed
+
+    
 
     #Get headers for CSV and verify RQL
     res = session.request('POST', '/search/config', payload)
@@ -185,9 +191,11 @@ def run_rql_hs():
             writer = csv.writer(f)
             for res in res_data['items']:
                 new_data = []
-                csv_data = [res['name'], res['service'], res['accountName'], res['regionName'], datetime.datetime.fromtimestamp(res['insertTs']/1000.).strftime('%Y-%m-%d %H:%M:%S'), res['deleted']]
+                #2023-01-30T19:36:07.921Z
+                # csv_data = [res['name'], res['service'], res['accountName'], res['regionName'], datetime.datetime.fromtimestamp(res['insertTs']/1000.).strftime('%Y-%m-%dT%H:%M:%S'), str(res['deleted']).lower()]
+                csv_data = [res['name'], res['service'], res['accountName'], res['regionName'], datetime.datetime.fromtimestamp(res['insertTs']/1000).isoformat()[:-3]+'Z', str(res['deleted']).lower()]
                 # csv_data = [res['name'], res['service'], res['accountName'], res['regionName'], res['insertTs'], res['deleted']]
-                csv_data = [res['name'], res['service'], res['accountName'], res['regionName'], res['insertTs'], str(res['deleted']).lower()]
+                # csv_data = [res['name'], res['service'], res['accountName'], res['regionName'], res['insertTs'], str(res['deleted']).lower()]
                 if 'dynamicData' in res:
                     for header in dy_headers:
                         found = False
