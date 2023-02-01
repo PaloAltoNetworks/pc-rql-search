@@ -11,6 +11,11 @@ class ConfigHelper(object):
         self.pc_api_base = config["prisma_cloud"]["api_base"]
         self.pc_file_name = config["prisma_cloud"]["filename"]
         self.pc_rql = config["prisma_cloud"]["rql"]
+        try:
+            self.utc = config["prisma_cloud"]["utc"]
+        except:
+            self.utc = True
+
 
     @classmethod
     def read_yml(self, f):

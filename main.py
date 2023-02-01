@@ -156,9 +156,7 @@ def run_rql_hs():
     res = session.request('POST', '/search/config', payload)
     session.headers.pop('Accept')
 
-    tz_list = res.text.split('\n')[2].split(',"')[1].split('",')[0].split(' ')[4:]#TODO if needed
-
-    
+    tz_list = res.text.split('\n')[2].split(',"')[1].split('",')[0].split(' ')[4:] #getting locale info from CSV
 
     #Get headers for CSV and verify RQL
     res = session.request('POST', '/search/config', payload)
@@ -193,9 +191,22 @@ def run_rql_hs():
                 new_data = []
                 #2023-01-30T19:36:07.921Z
                 # csv_data = [res['name'], res['service'], res['accountName'], res['regionName'], datetime.datetime.fromtimestamp(res['insertTs']/1000.).strftime('%Y-%m-%dT%H:%M:%S'), str(res['deleted']).lower()]
-                csv_data = [res['name'], res['service'], res['accountName'], res['regionName'], datetime.datetime.fromtimestamp(res['insertTs']/1000).isoformat()[:-3]+'Z', str(res['deleted']).lower()]
-                # csv_data = [res['name'], res['service'], res['accountName'], res['regionName'], res['insertTs'], res['deleted']]
+                
                 # csv_data = [res['name'], res['service'], res['accountName'], res['regionName'], res['insertTs'], str(res['deleted']).lower()]
+                if config.utc ==  True:
+                    csv_data = [res['name'], res['service'], res['accountName'], res['regionName'], datetime.datetime.fromtimestamp(res['insertTs']/1000).isoformat()[:-3]+'Z', str(res['deleted']).lower()]
+                else:
+                    #convert
+                    tz_code = tz_list[0]
+                    tz_locale = tz_list[1]
+                    to_zone = tz.gettz(tz_code)
+                    utc = datetime.datetime.fromtimestamp(res['insertTs']/1000)
+                    timestamp_with_zone = utc.astimezone(to_zone)
+                    locale_ts = timestamp_with_zone.strftime("%b %d, %Y %I.%M") + ' ' + tz_code + ' ' + tz_locale
+
+                    csv_data = [res['name'], res['service'], res['accountName'], res['regionName'], locale_ts, str(res['deleted']).lower()]
+
+
                 if 'dynamicData' in res:
                     for header in dy_headers:
                         found = False
