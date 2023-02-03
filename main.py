@@ -158,6 +158,10 @@ def run_rql_hs():
 
     tz_list = res.text.split('\n')[2].split(',"')[1].split('",')[0].split(' ')[4:] #getting locale info from CSV
 
+    add_column_order = res.text.split('\n')[1].split(',')[7:]
+    add_column_headers = res.text.split('\n')[1].split(',')
+    print(add_column_order)
+
     #Get headers for CSV and verify RQL
     res = session.request('POST', '/search/config', payload)
 
@@ -178,15 +182,24 @@ def run_rql_hs():
     filename = config.pc_file_name
     with open(filename, "w", newline='', encoding='utf-8') as f:
         writer = csv.writer(f)
-        writer.writerow(csv_headers)
+        if config.utc:
+            writer.writerow(csv_headers)
+        else:
+            writer.writerow(add_column_headers)
 
     #Define CSV Output Function
     def dump_to_csv(res_details, res_data, counter, total_rows):
         import csv
+        time_offset = 28800
         dy_headers = dy_headers_all
         filename = config.pc_file_name
         with open(filename, "a", newline='', encoding='utf-8') as f:
-            writer = csv.writer(f)
+            writer = object
+            if config.utc:
+                writer = csv.writer(f, quoting=csv.QUOTE_MINIMAL, quotechar = "'")
+            else:
+                writer = csv.writer(f)
+                
             for res in res_data['items']:
                 new_data = []
                 #2023-01-30T19:36:07.921Z
@@ -194,7 +207,14 @@ def run_rql_hs():
                 
                 # csv_data = [res['name'], res['service'], res['accountName'], res['regionName'], res['insertTs'], str(res['deleted']).lower()]
                 if config.utc ==  True:
-                    csv_data = [res['name'], res['service'], res['accountName'], res['regionName'], datetime.datetime.fromtimestamp(res['insertTs']/1000).isoformat()[:-3]+'Z', str(res['deleted']).lower()]
+                    #8 hours behind the CSV from the UI for some reason. Add 8 hours (time_offset value is 8 hours in seconds)
+                    name = res['name']
+                    service = res['service']
+                    accountName = res['accountName']
+                    regionName = res['regionName']
+                    time_stamp = datetime.datetime.fromtimestamp(res['insertTs']/1000 + time_offset).isoformat()[:-3]+'Z'
+                    deleted = str(res['deleted']).lower()
+                    csv_data = [f'\"{name}\"', f'\"{service}\"', f'\"{accountName}\"', f'\"{regionName}\"', f'\"{time_stamp}\"', deleted]
                 else:
                     #convert
                     tz_code = tz_list[0]
@@ -204,15 +224,26 @@ def run_rql_hs():
                     timestamp_with_zone = utc.astimezone(to_zone)
                     locale_ts = timestamp_with_zone.strftime("%b %d, %Y %I.%M") + ' ' + tz_code + ' ' + tz_locale
 
-                    csv_data = [res['name'], res['service'], res['accountName'], res['regionName'], locale_ts, str(res['deleted']).lower()]
+                    csv_data = [res['name'], res['service'], res['accountName'], res['regionName'], f'{locale_ts}', str(res['deleted']).lower()]
 
 
                 if 'dynamicData' in res:
-                    for header in dy_headers:
+                    headers_order = []
+                    if config.utc:
+                        headers_order = dy_headers
+                    else:
+                        headers_order = add_column_order
+
+                    for header in headers_order:
                         found = False
+
                         for ele in res['dynamicData']:
                             if header == ele:
-                                new_data.append(res['dynamicData'][ele])
+                                blob = res['dynamicData'][ele]
+                                if config.utc:
+                                    new_data.append(f'\"{blob}\"')
+                                else:
+                                    new_data.append(f'{blob}')
                                 found = True
                         if found == False:
                             new_data.append('None')
@@ -220,7 +251,25 @@ def run_rql_hs():
 
                     csv_data.extend(new_data)
                 else:
-                    csv_data = [res['name'], res['service'], res['accountName'], res['regionName'], datetime.datetime.fromtimestamp(res['insertTs']/1000.).strftime('%Y-%m-%d %H:%M:%S'), res['deleted']]
+                    if config.utc ==  True:
+                        #8 hours behind the CSV from the UI for some reason. Add 8 hours (time_offset value is 8 hours in seconds)
+                        name = res['name']
+                        service = res['service']
+                        accountName = res['accountName']
+                        regionName = res['regionName']
+                        time_stamp = datetime.datetime.fromtimestamp(res['insertTs']/1000 + time_offset).isoformat()[:-3]+'Z'
+                        deleted = str(res['deleted']).lower()
+                        csv_data = [f'\"{name}\"', f'\"{service}\"', f'\"{accountName}\"', f'\"{regionName}\"', f'\"{time_stamp}\"', deleted]
+                    else:
+                        #convert
+                        tz_code = tz_list[0]
+                        tz_locale = tz_list[1]
+                        to_zone = tz.gettz(tz_code)
+                        utc = datetime.datetime.fromtimestamp(res['insertTs']/1000)
+                        timestamp_with_zone = utc.astimezone(to_zone)
+                        locale_ts = timestamp_with_zone.strftime("%b %d, %Y %I.%M") + ' ' + tz_code + ' ' + tz_locale
+
+                        csv_data = [res['name'], res['service'], res['accountName'], res['regionName'], f'{locale_ts}', str(res['deleted']).lower()]
                 
                 writer.writerows([csv_data])
 
