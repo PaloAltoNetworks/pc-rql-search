@@ -46,7 +46,6 @@ def run_rql_hs():
 
     add_column_order = res.text.split('\n')[1].split(',')[7:]
     add_column_headers = res.text.split('\n')[1].split(',')
-    print(add_column_order)
 
     #Get headers for CSV and verify RQL
     res = session.request('POST', '/search/config', payload)
