@@ -66,7 +66,7 @@ def run_rql_hs():
     #Define CSV Output Function
     def dump_to_csv(res_details, res_data, counter, total_rows):
         import csv
-        time_offset = 28800
+        # time_offset = 28800
         dy_headers = dy_headers_all
         filename = config.pc_file_name
         with open(filename, "a", newline='', encoding='utf-8') as f:
@@ -79,12 +79,12 @@ def run_rql_hs():
                 
                 # csv_data = [res['name'], res['service'], res['accountName'], res['regionName'], res['insertTs'], str(res['deleted']).lower()]
 
-                #8 hours behind the CSV from the UI for some reason. Add 8 hours (time_offset value is 8 hours in seconds)
                 name = res['name']
                 service = res['service']
                 accountName = res['accountName']
                 regionName = res['regionName']
-                time_stamp = datetime.datetime.fromtimestamp(res['insertTs']/1000 + time_offset).isoformat()[:-3]+'Z'
+                time_stamp = str(datetime.datetime.fromtimestamp(res['insertTs']/ 1000.0, tz=datetime.timezone.utc))[:-9].replace(' ', 'T')+'Z'
+                # time_stamp = datetime.datetime.fromtimestamp(res['insertTs']/1000.0).isoformat()[:-3]+'Z'
                 deleted = str(res['deleted']).lower()
                 csv_data = [f'\"{name}\"', f'\"{service}\"', f'\"{accountName}\"', f'\"{regionName}\"', f'\"{time_stamp}\"', deleted]
 
@@ -97,10 +97,12 @@ def run_rql_hs():
                         for ele in res['dynamicData']:
                             if header == ele:
                                 blob = res['dynamicData'][ele]
-                                if config.utc:
-                                    new_data.append(f'\"{blob}\"')
-                                else:
-                                    new_data.append(f'{blob}')
+                                # if config.utc:
+                                if type(blob) == bool:
+                                    blob = str(blob).lower()
+                                new_data.append(f'\"{blob}\"')
+                                # else:
+                                #     new_data.append(f'{blob}')
                                 found = True
                         if found == False:
                             new_data.append('None')
