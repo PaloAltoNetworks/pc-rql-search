@@ -2,7 +2,7 @@
 
 This script is supported under a "best effort" policy. Please see SUPPORT.md for details.
 
-Version: *2.0*
+Version: *3.1*
 
 ### Summary
 This script will run RQL search and take the results and format them into CSV (based on current CSV output on Investigate page)  
