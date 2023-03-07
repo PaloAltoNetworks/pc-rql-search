@@ -100,7 +100,9 @@ def run_rql_hs():
                                 # if config.utc:
                                 if type(blob) == bool:
                                     blob = str(blob).lower()
-                                new_data.append(f'\"{blob}\"')
+                                    new_data.append(f'{blob}')
+                                else:
+                                    new_data.append(f'\"{blob}\"')
                                 # else:
                                 #     new_data.append(f'{blob}')
                                 found = True
