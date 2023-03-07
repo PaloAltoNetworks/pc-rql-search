@@ -97,7 +97,6 @@ def run_rql_hs():
                         for ele in res['dynamicData']:
                             if header == ele:
                                 blob = res['dynamicData'][ele]
-                                # if config.utc:
                                 if type(blob) == bool:
                                     blob = str(blob).lower()
                                     new_data.append(f'{blob}')
