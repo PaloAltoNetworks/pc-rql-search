@@ -154,7 +154,8 @@ def dump_to_csv(items, csv_headers, dynamic_headers):
             time_stamp = str(datetime.datetime.fromtimestamp(item['insertTs']/ 1000.0, tz=datetime.timezone.utc))[:-9].replace(' ', 'T')+'Z'
             # time_stamp = datetime.datetime.fromtimestamp(res['insertTs']/1000.0).isoformat()[:-3]+'Z'
             deleted = str(item['deleted']).lower()
-            csv_data = [f'\"{name}\"', f'\"{service}\"', f'\"{accountName}\"', f'\"{regionName}\"', f'\"{time_stamp}\"', deleted]
+            # csv_data = [f'\"{name}\"', f'\"{service}\"', f'\"{accountName}\"', f'\"{regionName}\"', f'\"{time_stamp}\"', deleted]
+            csv_data = [f'{name}', f'{service}', f'{accountName}', f'{regionName}', f'{time_stamp}', deleted]
 
             if 'dynamicData' in item:
                 headers_order = []
@@ -165,13 +166,13 @@ def dump_to_csv(items, csv_headers, dynamic_headers):
                     for ele in item['dynamicData']:
                         if header == ele:
                             blob = item['dynamicData'][ele]
-                            if type(blob) == bool:
+                            if type(blob) == dict:
+                                new_data.append(blob)
+                            
+                            else:
                                 blob = str(blob).lower()
                                 new_data.append(f'{blob}')
-                            else:
-                                new_data.append(f'\"{blob}\"')
-                            # else:
-                            #     new_data.append(f'{blob}')
+
                             found = True
                     if found == False:
                         new_data.append('None')
