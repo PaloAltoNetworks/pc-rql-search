@@ -1,8 +1,6 @@
 from operator import mod
 import lib
-import json
 import csv
-import re
 import datetime
 from dateutil import tz
 from datetime import datetime as dt
@@ -15,6 +13,7 @@ def run_rql_hs():
     config = lib.ConfigHelper()
     session_manager = saas_session_manager.SaaSSessionManager('Tenant', config.pc_user, config.pc_pass, "https://" + config.pc_api_base)
     session = session_manager.create_cspm_session()
+
     rql = config.pc_rql
 
     payload = {
@@ -36,6 +35,7 @@ def run_rql_hs():
 
 
     #Get headers for CSV and verify RQL
+
     res = session.request('POST', '/search/config', payload)
 
     if res.status_code in session.success_status:
