@@ -1,10 +1,16 @@
 from operator import mod
 import lib
+import json
 import csv
+import re
 import datetime
 from dateutil import tz
 from datetime import datetime as dt
 
+import logging
+logging.basicConfig()
+py_logger = logging.getLogger("pcpi")
+py_logger.setLevel(10)
 
 from pcpi import saas_session_manager
 
@@ -13,7 +19,6 @@ def run_rql_hs():
     config = lib.ConfigHelper()
     session_manager = saas_session_manager.SaaSSessionManager('Tenant', config.pc_user, config.pc_pass, "https://" + config.pc_api_base)
     session = session_manager.create_cspm_session()
-
     rql = config.pc_rql
 
     payload = {
@@ -35,7 +40,6 @@ def run_rql_hs():
 
 
     #Get headers for CSV and verify RQL
-
     res = session.request('POST', '/search/config', payload)
 
     if res.status_code in session.success_status:
@@ -93,13 +97,15 @@ def run_rql_hs():
                         for ele in res['dynamicData']:
                             if header == ele:
                                 blob = res['dynamicData'][ele]
-                                if type(blob) == bool:
+
+                                if type(blob) == dict:
+                                    new_data.append(blob)
+                                
+                                else:
                                     blob = str(blob).lower()
                                     new_data.append(f'{blob}')
-                                else:
-                                    new_data.append(f'\"{blob}\"')
-                                # else:
-                                #     new_data.append(f'{blob}')
+
+
                                 found = True
                         if found == False:
                             new_data.append('None')

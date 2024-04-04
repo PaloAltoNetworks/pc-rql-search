@@ -77,54 +77,6 @@ def perform_rql_search():
 
     return (items, csv_headers, dynamic_headers)
 
-# def run_rql_hs():
-#     #Read Config
-#     config = lib.ConfigHelper()
-#     session_manager = saas_session_manager.SaaSSessionManager('Tenant', config.pc_user, config.pc_pass, "https://" + config.pc_api_base, True, py_logger)
-#     session = session_manager.create_cspm_session()
-#     rql = config.pc_rql
-
-#     payload = {
-#         "query": rql,
-#         "limit": 1,
-#         "timeRange": {
-#             "relativeTimeType": "BACKWARD",
-#             "type": "relative",
-#             "value": {
-#                 "amount": 24,
-#                 "unit": "hour"
-#             }
-#         },
-#         "withResourceJson": True,
-#         "heuristicSearch": True
-#     }
-#     csv_headers = ["Resource Name", "Service", "Account", "Region Name", "Last Modified", "Deleted" ]
-#     dy_headers_all = []
-
-
-#     #Get headers for CSV and verify RQL
-#     res = session.request('POST', '/search/config', payload)
-
-#     if res.status_code in session.success_status:
-#         res_data = res.json()
-#         if 'dynamicColumns' in res.json()['data']: 
-#             for col in res_data['data']['dynamicColumns']:
-#                 if not col in csv_headers:
-#                     csv_headers.append(col)
-#                     dy_headers_all.append(col)
-#     else:
-#         py_logger.error('Config Search Failed')
-#         print('Steps to troubleshoot:')
-#         print('1) Verify Credentials are Valid')
-#         print('2) Verify RQL is valid using the Prisma Cloud UI')
-
-#     #Dump headers to file
-#     filename = config.pc_file_name
-#     with open(filename, "w", newline='', encoding='utf-8') as f:
-#         writer = csv.writer(f)
-
-#         writer.writerow(csv_headers)
-
 
 #Define CSV Output Function
 def dump_to_csv(items, csv_headers, dynamic_headers):
