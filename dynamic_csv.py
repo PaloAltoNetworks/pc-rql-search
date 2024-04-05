@@ -58,10 +58,8 @@ def perform_rql_search():
         for item in res_data.get('items',[]):
             items.append(item)
 
-        if res.status_code in session.success_status:
-
-            if 'dynamicColumns' in res_data: 
-                for col in res_data['dynamicColumns']:
+            if 'dynamicData' in item: 
+                for col in item['dynamicData'].keys():
                     if not col in csv_headers:
                         csv_headers.append(col)
                         dynamic_headers.append(col)
@@ -88,7 +86,7 @@ def dump_to_csv(items, csv_headers, dynamic_headers):
 
     with open(filename, "a", newline='', encoding='utf-8') as f:
         writer = object
-        writer = csv.writer(f, quoting=csv.QUOTE_MINIMAL, quotechar = "'")
+        writer = csv.writer(f, quoting=csv.QUOTE_ALL, quotechar = "'")
 
         writer.writerow(csv_headers)
 
