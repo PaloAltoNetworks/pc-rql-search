@@ -86,7 +86,8 @@ def dump_to_csv(items, csv_headers, dynamic_headers):
 
     with open(filename, "a", newline='', encoding='utf-8') as f:
         writer = object
-        writer = csv.writer(f, quoting=csv.QUOTE_ALL, quotechar = "'")
+
+        writer = csv.writer(f, quoting=csv.QUOTE_ALL, doublequote=True, quotechar="\"")
 
         writer.writerow(csv_headers)
 
@@ -105,7 +106,7 @@ def dump_to_csv(items, csv_headers, dynamic_headers):
             # time_stamp = datetime.datetime.fromtimestamp(res['insertTs']/1000.0).isoformat()[:-3]+'Z'
             deleted = str(item['deleted']).lower()
             # csv_data = [f'\"{name}\"', f'\"{service}\"', f'\"{accountName}\"', f'\"{regionName}\"', f'\"{time_stamp}\"', deleted]
-            csv_data = [f'{name}', f'{service}', f'{accountName}', f'{regionName}', f'{time_stamp}', deleted]
+            csv_data = [name, service, accountName, regionName, time_stamp, deleted]
 
             if 'dynamicData' in item:
                 headers_order = []
@@ -121,9 +122,10 @@ def dump_to_csv(items, csv_headers, dynamic_headers):
                             
                             else:
                                 blob = str(blob).lower()
-                                new_data.append(f'{blob}')
+                                new_data.append(blob)
 
                             found = True
+                            
                     if found == False:
                         new_data.append('None')
 
