@@ -71,7 +71,7 @@ def run_rql_hs():
         filename = config.pc_file_name
         with open(filename, "a", newline='', encoding='utf-8') as f:
             writer = object
-            writer = csv.writer(f, quoting=csv.QUOTE_MINIMAL, quotechar = "'")
+            writer = csv.writer(f, quoting=csv.QUOTE_ALL, doublequote=True, quotechar="\"")
             for res in res_data['items']:
                 new_data = []
                 #2023-01-30T19:36:07.921Z
@@ -86,7 +86,7 @@ def run_rql_hs():
                 time_stamp = str(datetime.datetime.fromtimestamp(res['insertTs']/ 1000.0, tz=datetime.timezone.utc))[:-9].replace(' ', 'T')+'Z'
                 # time_stamp = datetime.datetime.fromtimestamp(res['insertTs']/1000.0).isoformat()[:-3]+'Z'
                 deleted = str(res['deleted']).lower()
-                csv_data = [f'\"{name}\"', f'\"{service}\"', f'\"{accountName}\"', f'\"{regionName}\"', f'\"{time_stamp}\"', deleted]
+                csv_data = [name, service, accountName, regionName, time_stamp, deleted]
 
                 if 'dynamicData' in res:
                     headers_order = []
@@ -103,7 +103,7 @@ def run_rql_hs():
                                 
                                 else:
                                     blob = str(blob).lower()
-                                    new_data.append(f'{blob}')
+                                    new_data.append(blob)
 
 
                                 found = True
