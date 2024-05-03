@@ -14,6 +14,7 @@ py_logger.setLevel(10)
 
 from pcpi import saas_session_manager
 
+
 def run_rql_hs():
     #Read Config
     config = lib.ConfigHelper()
@@ -123,7 +124,9 @@ def run_rql_hs():
 def main():
     # RQL_Async = RQLAsync()
     # RQL_Async.run()
-    run_rql_hs()
+    # run_rql_hs()
+
+    run_config_network_rql()
 
 if __name__ == "__main__":
     main()
