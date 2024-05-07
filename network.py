@@ -48,7 +48,9 @@ def dump_to_csv(network_res):
 
     with open(filename, "a", newline='', encoding='utf-8') as f:
         writer = object
-        writer = csv.writer(f, quoting=csv.QUOTE_ALL, doublequote=True, quotechar="\"")
+        writer = csv.writer(f)
+
+        writer.writerow(headers)
         for resource_id in network_res['data']['nodes'].keys():
             new_data = []
             #2023-01-30T19:36:07.921Z
@@ -59,14 +61,14 @@ def dump_to_csv(network_res):
             source_name = network_res['data']['nodes'][resource_id]['nodeData']['name']
             source_account = network_res['data']['nodes'][resource_id]['nodeData']['accountId']
             source_vpc = network_res['data']['nodes'][resource_id]['nodeData'].get('VPCID', 'NONE')
-            destination_network_ips = network_res['data']['sourceDestinationMap'][resource_id]
+            destination_network_ips = network_res['data']['sourceDestinationMap'].get(resource_id, {})
             for key in destination_network_ips.keys():
                 destination_network = key
                 policy_action = destination_network_ips[key]['verdict']
 
                 csv_data = [source_instance_id, source_account, source_vpc, source_name, destination_network, policy_action]
             
-                writer.writerows(csv_data)
+                writer.writerow(csv_data)
 
 if __name__ == '__main__':
     data = run_config_network_rql()
