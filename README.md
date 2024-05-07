@@ -35,6 +35,11 @@ This script will run RQL search and take the results and format them into CSV (b
 
 ### Run
 
+For generic config searches
 ```
-python main.py
+python config.py
+```
+For config from network searches
+```
+python network.py
 ```
