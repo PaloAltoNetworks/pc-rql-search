@@ -124,9 +124,8 @@ def run_rql_hs():
 def main():
     # RQL_Async = RQLAsync()
     # RQL_Async.run()
-    # run_rql_hs()
+    run_rql_hs()
 
-    run_config_network_rql()
 
 if __name__ == "__main__":
     main()
