@@ -46,7 +46,7 @@ def dump_to_csv(network_res):
 
     headers = ["Source Instance ID","Source Account","Source VPC","Source Name","Destination Network","Policy Action"]
 
-    with open(filename, "a", newline='', encoding='utf-8') as f:
+    with open(filename, "w", newline='', encoding='utf-8') as f:
         writer = object
         writer = csv.writer(f)
 
