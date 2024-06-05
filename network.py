@@ -36,6 +36,10 @@ def run_config_network_rql():
 
     res = session.request('POST', '/cnssearches', json=payload)
 
+    import json
+    with open('dump.json', 'w') as outfile:
+        json.dump(res.json(), outfile)
+
     return res.json()
 
 #Define CSV Output Function
@@ -62,13 +66,25 @@ def dump_to_csv(network_res):
             source_account = network_res['data']['nodes'][resource_id]['nodeData'].get('accountId', 'NONE')
             source_vpc = network_res['data']['nodes'][resource_id]['nodeData'].get('VPCID', 'NONE')
             destination_network_ips = network_res['data']['sourceDestinationMap'].get(resource_id, {})
-            for key in destination_network_ips.keys():
-                destination_network = key
-                policy_action = destination_network_ips[key]['verdict']
+            if destination_network_ips:
+                for key in destination_network_ips.keys():
+                    destination_network = key
+                    policy_action = destination_network_ips[key]['verdict']
 
-                csv_data = [source_instance_id, source_account, source_vpc, source_name, destination_network, policy_action]
-            
-                writer.writerow(csv_data)
+                    csv_data = [source_instance_id, source_account, source_vpc, source_name, destination_network, policy_action]
+                
+                    writer.writerow(csv_data)
+            else:
+                for ip_key in network_res['data']['sourceDestinationMap']:
+                    nested_destination_network_ips = network_res['data']['sourceDestinationMap'][ip_key].get(resource_id, {})
+                    if nested_destination_network_ips:
+                        policy_action = nested_destination_network_ips['verdict']
+
+                        csv_data = [source_instance_id, source_account, source_vpc, source_name, ip_key, policy_action]
+                    
+                        writer.writerow(csv_data)
+
+
 
 if __name__ == '__main__':
     data = run_config_network_rql()
