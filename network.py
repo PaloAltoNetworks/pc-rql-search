@@ -58,8 +58,8 @@ def dump_to_csv(network_res):
             
             # csv_data = [res['name'], res['service'], res['accountName'], res['regionName'], res['insertTs'], str(res['deleted']).lower()]
             source_instance_id = resource_id
-            source_name = network_res['data']['nodes'][resource_id]['nodeData']['name']
-            source_account = network_res['data']['nodes'][resource_id]['nodeData']['accountId']
+            source_name = network_res['data']['nodes'][resource_id]['nodeData'].get('name','NONE')
+            source_account = network_res['data']['nodes'][resource_id]['nodeData'].get('accountId', 'NONE')
             source_vpc = network_res['data']['nodes'][resource_id]['nodeData'].get('VPCID', 'NONE')
             destination_network_ips = network_res['data']['sourceDestinationMap'].get(resource_id, {})
             for key in destination_network_ips.keys():
