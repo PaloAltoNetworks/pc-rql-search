@@ -36,7 +36,7 @@ def run_rql_hs():
         "withResourceJson": True,
         "heuristicSearch": True
     }
-    csv_headers = ["Resource Name", "Service", "Account", "Region Name", "Last Modified", "Deleted" ]
+    csv_headers = ["Asset Name", "Service", "Account", "Region Name", "Last Modified", "Deleted" ]
     dy_headers_all = []
 
 
