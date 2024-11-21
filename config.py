@@ -1,11 +1,8 @@
-from operator import mod
 import lib
-import json
 import csv
-import re
 import datetime
-from dateutil import tz
 from datetime import datetime as dt
+import csv
 
 import logging
 logging.basicConfig()
@@ -14,14 +11,92 @@ py_logger.setLevel(10)
 
 from pcpi import saas_session_manager
 
+#Define CSV Output Function
+def dump_to_csv(writer, res_data, dynamic_headers):
+    for item in res_data['items']:
+        dynamic_data_list = []
 
-def run_rql_hs():
-    #Read Config
-    config = lib.ConfigHelper()
-    session_manager = saas_session_manager.SaaSSessionManager('Tenant', config.pc_user, config.pc_pass, "https://" + config.pc_api_base)
-    session = session_manager.create_cspm_session()
-    rql = config.pc_rql
+        #["Asset Name", "Service", "Account", "Region Name", "Last Modified", "Deleted"]
+        name = item['name'] #Asset Name
+        service = item['service'] #Service Name
+        accountName = item['accountName'] #Account Name
+        regionName = item['regionName'] #Region Name
+        time_stamp = str(datetime.datetime.fromtimestamp(item['insertTs']/ 1000.0, tz=datetime.timezone.utc))[:-9].replace(' ', 'T')+'Z' # Last Modified
+        deleted = str(item['deleted']).lower() #Deleted
+        
+        csv_data_list = [name, service, accountName, regionName, time_stamp, deleted]
 
+        if 'dynamicData' in item:
+            for header in dynamic_headers:
+                found = False
+                for ele in item['dynamicData']:
+                    if header == ele:
+                        blob = item['dynamicData'][ele]
+
+                        if type(blob) == dict:
+                            dynamic_data_list.append(blob)
+                        
+                        else:
+                            blob = str(blob).lower()
+                            dynamic_data_list.append(blob)
+
+                        found = True
+                if found == False:
+                    dynamic_data_list.append('None')
+
+            csv_data_list.extend(dynamic_data_list)
+        
+        writer.writerows([csv_data_list])
+
+def paginate_and_write_to_csv(session, payload, csv_headers, dynamic_headers, config):
+    limit = 2000
+    total_rows = 0
+    counter = 0
+
+    # Force best practices with HS
+    payload.update({"heuristicSearch": True, "limit": limit, "withResourceJson": True})
+
+    with open(config.pc_file_name, 'w') as file_pointer:
+
+        writer = csv.writer(file_pointer, quoting=csv.QUOTE_ALL, doublequote=True, quotechar="\"")
+
+        # Write headers:
+        writer.writerow(csv_headers + dynamic_headers)
+
+        while True:
+            # Make API call
+            endpoint = '/search/api/v2/config' if counter == 0 else '/search/config/page'
+            res = session.request('POST', endpoint, json=payload)
+            
+            # Validate API call
+            if res.status_code not in session.success_status:
+                session.logger.error(f"API call failed with status code: {res.status_code}")
+                break
+
+            # Extract data from API call
+            res_data = res.json()
+
+            # Update total rows
+            total_rows += res_data.get('totalRows', 0)
+
+            # Call the provided function
+            dump_to_csv(writer, res_data, dynamic_headers)
+
+            session.logger.info(f"Processing page {counter}, got {res_data.get('totalRows', 0)} items, total items: {total_rows}")
+
+            # Check if there's a next page
+            if 'nextPageToken' not in res_data:
+                break
+
+            counter += 1
+            # Update payload for the next page
+            payload.update({'pageToken': res_data['nextPageToken']})
+            
+
+        session.logger.info(f"Completed processing. Total rows: {total_rows}")
+        return total_rows
+
+def get_dynamic_columns(session, rql):
     payload = {
         "query": rql,
         "limit": 1,
@@ -33,99 +108,43 @@ def run_rql_hs():
                 "unit": "hour"
             }
         },
-        "withResourceJson": True,
-        "heuristicSearch": True
+        "withResourceJson": False,
+        "heuristicSearch": False
     }
-    csv_headers = ["Asset Name", "Service", "Account", "Region Name", "Last Modified", "Deleted" ]
-    dy_headers_all = []
-
 
     #Get headers for CSV and verify RQL
-    res = session.request('POST', '/search/config', payload)
+    res = session.request('POST', '/search/api/v2/config', payload)
 
-    if res.status_code in session.success_status:
-        res_data = res.json()
-        if 'dynamicColumns' in res.json()['data']: 
-            for col in res_data['data']['dynamicColumns']:
-                if not col in csv_headers:
-                    csv_headers.append(col)
-                    dy_headers_all.append(col)
-    else:
-        py_logger.error('Config Search Failed')
-        print('Steps to troubleshoot:')
-        print('1) Verify Credentials are Valid')
-        print('2) Verify RQL is valid using the Prisma Cloud UI')
+    dynamic_headers = res.json().get('dynamicColumns',[])
 
-    #Dump headers to file
-    filename = config.pc_file_name
-    with open(filename, "w", newline='', encoding='utf-8') as f:
-        writer = csv.writer(f)
-
-        writer.writerow(csv_headers)
-
-
-    #Define CSV Output Function
-    def dump_to_csv(res_details, res_data, counter, total_rows):
-        import csv
-        # time_offset = 28800
-        dy_headers = dy_headers_all
-        filename = config.pc_file_name
-        with open(filename, "a", newline='', encoding='utf-8') as f:
-            writer = object
-            writer = csv.writer(f, quoting=csv.QUOTE_ALL, doublequote=True, quotechar="\"")
-            for res in res_data['items']:
-                new_data = []
-                #2023-01-30T19:36:07.921Z
-                # csv_data = [res['name'], res['service'], res['accountName'], res['regionName'], datetime.datetime.fromtimestamp(res['insertTs']/1000.).strftime('%Y-%m-%dT%H:%M:%S'), str(res['deleted']).lower()]
-                
-                # csv_data = [res['name'], res['service'], res['accountName'], res['regionName'], res['insertTs'], str(res['deleted']).lower()]
-
-                name = res['name']
-                service = res['service']
-                accountName = res['accountName']
-                regionName = res['regionName']
-                time_stamp = str(datetime.datetime.fromtimestamp(res['insertTs']/ 1000.0, tz=datetime.timezone.utc))[:-9].replace(' ', 'T')+'Z'
-                # time_stamp = datetime.datetime.fromtimestamp(res['insertTs']/1000.0).isoformat()[:-3]+'Z'
-                deleted = str(res['deleted']).lower()
-                csv_data = [name, service, accountName, regionName, time_stamp, deleted]
-
-                if 'dynamicData' in res:
-                    headers_order = []
-                    headers_order = dy_headers
-                    for header in headers_order:
-                        found = False
-
-                        for ele in res['dynamicData']:
-                            if header == ele:
-                                blob = res['dynamicData'][ele]
-
-                                if type(blob) == dict:
-                                    new_data.append(blob)
-                                
-                                else:
-                                    blob = str(blob).lower()
-                                    new_data.append(blob)
-
-
-                                found = True
-                        if found == False:
-                            new_data.append('None')
-
-                    csv_data.extend(new_data)
-                
-                writer.writerows([csv_data])
-
-    #Run HS RQL
-    total_rows = session.config_search_request_function(payload, dump_to_csv)
-    #Done
-    print(f'Got {total_rows} rows.')
-
+    return dynamic_headers
 
 def main():
-    # RQL_Async = RQLAsync()
-    # RQL_Async.run()
-    run_rql_hs()
+    config = lib.ConfigHelper()
+    session_manager = saas_session_manager.SaaSSessionManager('Tenant', config.pc_user, config.pc_pass, "https://" + config.pc_api_base)
+    session = session_manager.create_cspm_session()
+    rql = config.pc_rql
 
+    payload = {
+        "query": rql,
+        "limit": 2000,
+        "timeRange": {
+            "relativeTimeType": "BACKWARD",
+            "type": "relative",
+            "value": {
+                "amount": 24,
+                "unit": "hour"
+            }
+        },
+        "withResourceJson": False,
+        "heuristicSearch": False
+    }
+    csv_headers = ["Asset Name", "Service", "Account", "Region Name", "Last Modified", "Deleted"]
+
+    dynamic_headers = get_dynamic_columns(session, rql)
+
+    paginate_and_write_to_csv(session, payload, csv_headers, dynamic_headers, config)
+    
 
 if __name__ == "__main__":
     main()
