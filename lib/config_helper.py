@@ -15,6 +15,10 @@ class ConfigHelper(object):
             self.utc = config["prisma_cloud"]["utc"]
         except:
             self.utc = True
+        try:
+            self.transform_dict = config['prisma_cloud']['transform_dict']
+        except:
+            self.transform_dict = False
 
 
     @classmethod

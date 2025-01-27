@@ -11,8 +11,26 @@ py_logger.setLevel(10)
 
 from pcpi import saas_session_manager
 
+def transform_dict_list(input_list):
+    if not isinstance(input_list, list):
+        raise ValueError("Input must be a list")
+    
+    #If the list of dicts is already in the simple format, just return the list
+    string_input_list = str(input_list)
+    if 'key' not in string_input_list and 'value' not in string_input_list:
+        return input_list
+
+    result = []
+    for item in input_list:
+        if not isinstance(item, dict) or 'key' not in item or 'value' not in item:
+            raise ValueError("Each item in the list must be a dictionary with 'key' and 'value'")
+        result.append({item['key']: item['value']})
+    
+    return result
+
+
 #Define CSV Output Function
-def dump_to_csv(writer, res_data, dynamic_headers):
+def dump_to_csv(writer, res_data, dynamic_headers, transform_dict):
     for item in res_data['items']:
         dynamic_data_list = []
 
@@ -36,6 +54,9 @@ def dump_to_csv(writer, res_data, dynamic_headers):
                         if type(blob) == dict:
                             dynamic_data_list.append(blob)
                         
+                        elif type(blob) == list and transform_dict:
+                            blob = str(transform_dict_list(blob))
+                            dynamic_data_list.append(blob)
                         else:
                             blob = str(blob).lower()
                             dynamic_data_list.append(blob)
@@ -80,7 +101,7 @@ def paginate_and_write_to_csv(session, payload, csv_headers, dynamic_headers, co
             total_rows += res_data.get('totalRows', 0)
 
             # Call the provided function
-            dump_to_csv(writer, res_data, dynamic_headers)
+            dump_to_csv(writer, res_data, dynamic_headers, config.transform_dict)
 
             session.logger.info(f"Processing page {counter}, got {res_data.get('totalRows', 0)} items, total items: {total_rows}")
 

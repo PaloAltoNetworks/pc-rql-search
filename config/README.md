@@ -9,6 +9,7 @@ prisma_cloud:
   filename: ""
   rql: "config from cloud.resource where api.name = 'aws-ec2-describe-instances' addcolumn instanceId vpcId"
   utc: True #(True/False) sets time stamp format to include time zone (False) or be UTC time (True)
+  transform_dict: False #(True/False) changes the dictionary format from {key:value, value:value} to {key:value}
 ```
 
 # Add your tenant credentials
